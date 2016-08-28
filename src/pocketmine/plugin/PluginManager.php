@@ -262,14 +262,7 @@ class PluginManager
                                 $compatible = true;
                                 break;
                             }
-
-                            if ($compatible === false and $this->server->getProperty("settings.incompatible-plugins") === false) {
-                                $this->server->getLogger()->error($this->server->getLanguage()->translateString("pocketmine.plugin.loadError", [$name, "%pocketmine.plugin.incompatibleAPI"]));
-                                continue;
-                            } else {
-                                $this->server->getLogger()->warning("Loading plugin '$name' with incompatible API version (the plugin API is not compatible with Apollo API version " . $this->server->getApiVersion() . ")");
-                            }
-
+                            
                             $plugins[$name] = $file;
 
                             $softDependencies[$name] = (array) $description->getSoftDepend();
