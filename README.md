@@ -15,7 +15,7 @@ and its pickt upp bij caspervanneck
 
 ## Information
 
-- Need to communicate with us? Join our [Telegram](https://telegram.me/joinchat/Dr8v-0CS5ZziSrZK5ts4xA) group!
+- Need to communicate with us? Join our [Telegram](https://telegram.me/apolloteam) group!
 - We are a edited version of Genisys. We have edited their generators to our version and have improved the performance
 - You can download .phar from Circle CI. Tab to latest build,tap to artifacts selection,tap to DevTools and download Apollo1.0dev.phar
 
