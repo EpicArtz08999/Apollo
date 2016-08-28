@@ -170,7 +170,6 @@ use pocketmine\utils\TextFormat;
 use pocketmine\utils\Utils;
 use pocketmine\utils\UUID;
 use pocketmine\utils\VersionString;
-use pocketmine\updater\AutoUpdater;
 
 use synapse\Synapse;
 
@@ -215,9 +214,6 @@ class Server{
 	private $pluginManager = null;
 
 	private $profilingTickRate = 20;
-
-	/** @var AutoUpdater */
-	private $updater = null;
 
 	/** @var ServerScheduler */
 	private $scheduler = null;
@@ -331,7 +327,7 @@ class Server{
 	/** @var Level */
 	private $levelDefault = null;
 
-	public $aboutstring = "";
+	private $aboutContent = "";
 
 	/** Advanced Config */
 	public $advancedConfig = null;
@@ -351,9 +347,8 @@ class Server{
 	public $expCache = [];
 	public $expWriteAhead = 200;
 	public $aiConfig = [];
-	public $aiEnabled = true;
+	public $aiEnabled = false;
 	public $aiHolder = null;
-	public $inventoryNum = 36;
 	public $hungerTimer = 80;
 	public $version;
 	public $allowSnowGolem;
@@ -370,21 +365,21 @@ class Server{
 	public $playerLoginMsg = "";
 	public $playerLogoutMsg = "";
 	public $antiFly = false;
-	public $asyncChunkRequest = false;
+	public $asyncChunkRequest = true;
 	public $recipesFromJson = false;
 	public $creativeItemsFromJson = false;
-	public $minecartMovingType = 1;
 	public $checkMovement = false;
 	public $keepExperience = false;
-	public $limitedCreative = false;
-	public $chunkRadius = 1;
+	public $limitedCreative = true;
+	public $chunkRadius = -1;
 	public $destroyBlockParticle = true;
 	public $allowSplashPotion = true;
 	public $fireSpread = false;
 	public $advancedCommandSelector = false;
 	public $synapseConfig = [];
 	public $enchantingTableEnabled = true;
-	public $countBookshelf = true;
+	public $countBookshelf = false;
+	public $allowInventoryCheats = false;
 
 	/** @var CraftingDataPacket */
 	private $recipeList = null;
@@ -392,11 +387,11 @@ class Server{
 	/** @var Synapse */
 	private $synapse = null;
 
-/**
+	/**
 	 * @return string
 	 */
 	public function getName() : string{
-		return "Apollo";
+		return "Genisys";
 	}
 
 	/**
@@ -405,7 +400,7 @@ class Server{
 	public function isRunning(){
 		return $this->isRunning === true;
 	}
-	
+
 	/**
 	 * @return string
 	 * Returns a formatted string of how long the server has been running for
@@ -438,11 +433,15 @@ class Server{
 		return $uptime;
 	}
 
-		/**
+	/**
 	 * @return string
 	 */
 	public function getPocketMineVersion(){
 		return \pocketmine\VERSION;
+	}
+
+	public function getFormattedVersion($prefix = ""){
+		return (\pocketmine\VERSION !== ""? $prefix . \pocketmine\VERSION : "");
 	}
 
 	/**
@@ -464,6 +463,21 @@ class Server{
 	 */
 	public function getApiVersion(){
 		return \pocketmine\API_VERSION;
+	}
+
+
+	/**
+	 * @return string
+	 */
+	public function getiTXApiVersion(){
+		return \pocketmine\GENISYS_API_VERSION;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getGeniApiVersion(){
+		return \pocketmine\GENISYS_API_VERSION;
 	}
 
 	/**
@@ -547,7 +561,7 @@ class Server{
 	 * @return string
 	 */
 	public function getLevelType(){
-		return $this->getConfigString("level-type", "normal2"); //normal2 is default level for Apollo
+		return $this->getConfigString("level-type", "DEFAULT");
 	}
 
 	/**
@@ -738,13 +752,6 @@ class Server{
 	 */
 	public function getLevelMetadata(){
 		return $this->levelMetadata;
-	}
-
-	/**
-	 * @return AutoUpdater
-	 */
-	public function getUpdater(){
-		return $this->updater;
 	}
 
 	/**
@@ -1290,7 +1297,7 @@ class Server{
 			$generator = Generator::getGenerator($this->getLevelType());
 		}
 
-		if(($provider = LevelProviderManager::getProviderByName($providerName = $this->getProperty("level-settings.default-format", "mcregion"))) === null){
+		if(($provider = LevelProviderManager::getProviderByName($providerName = $this->getProperty("level-settings.default-format", "anvil"))) === null){
 			$provider = LevelProviderManager::getProviderByName($providerName = "anvil");
 		}
 
@@ -1525,7 +1532,7 @@ class Server{
 				$this->operators->remove($opName);
 			}
 		}
-		
+
 		if(($player = $this->getPlayerExact($name)) !== null){
 			$player->recalculatePermissions();
 		}
@@ -1633,7 +1640,15 @@ class Server{
 	}
 
 	public function about(){
-		$this->logger->info($this->aboutstring);
+		$string = '
+
+	§3Apollo§f is a fork of §bgenisys§f, made by §5icaspervanneck and nycuro§f
+	Version: §6' . $this->getPocketMineVersion() . '§f
+	Target client version: §b' . \pocketmine\MINECRAFT_VERSION . '§f
+	Source code: §dhttps://github.com/apollo-team/Apollo§f
+	';
+	
+		$this->getLogger()->info($string);
 	}
 
 	public function loadAdvancedConfig(){
@@ -1668,7 +1683,6 @@ class Server{
 			"creeperexplode" => $this->getAdvancedProperty("ai.creeper-explode-destroy-block", false),
 			"mobgenerate" => $this->getAdvancedProperty("ai.mobgenerate", false),
 		];
-		$this->inventoryNum = min(91, $this->getAdvancedProperty("player.inventory-num", 36));
 		$this->hungerTimer = $this->getAdvancedProperty("player.hunger-timer", 80);
 		$this->allowSnowGolem = $this->getAdvancedProperty("server.allow-snow-golem", false);
 		$this->allowIronGolem = $this->getAdvancedProperty("server.allow-iron-golem", false);
@@ -1695,7 +1709,6 @@ class Server{
 		$this->asyncChunkRequest = $this->getAdvancedProperty("server.async-chunk-request", true);
 		$this->recipesFromJson = $this->getAdvancedProperty("server.recipes-from-json", false);
 		$this->creativeItemsFromJson = $this->getAdvancedProperty("server.creative-items-from-json", false);
-		$this->minecartMovingType = $this->getAdvancedProperty("server.minecart-moving-type", 0);
 		$this->checkMovement = $this->getAdvancedProperty("server.check-movement", true);
 		$this->limitedCreative = $this->getAdvancedProperty("server.limited-creative", true);
 		$this->chunkRadius = $this->getAdvancedProperty("player.chunk-radius", -1);
@@ -1715,6 +1728,8 @@ class Server{
 		$this->anvilEnabled = $this->getAdvancedProperty("enchantment.enable-anvil", true);
 		$this->enchantingTableEnabled = $this->getAdvancedProperty("enchantment.enable-enchanting-table", true);
 		$this->countBookshelf = $this->getAdvancedProperty("enchantment.count-bookshelf", false);
+
+		$this->allowInventoryCheats = $this->getAdvancedProperty("inventory.allow-cheats", false);
 	}
 
 	public function isSynapseEnabled() : bool {
@@ -1800,26 +1815,17 @@ class Server{
 			$version = new VersionString($this->getPocketMineVersion());
 			$this->version = $version;
 
-
-			$this->aboutstring = "\n
-		  §3Apollo §fis a fork of PocketMine-MP, made by §5NycuRO§f.
-		  §fVersion: §6" . $this->getPocketMineVersion() . "
-		  §fTarget client Version: §d" . \pocketmine\MINECRAFT_VERSION . "
-		  §fLatest source code is available at https://github.com/NycuRO/Apollo
-		\n";
-
 			$this->about();
 
-			$this->logger->info("Loading pocketmine.yml...");
+			$this->logger->info("Loading properties and configuration...");
 			if(!file_exists($this->dataPath . "pocketmine.yml")){
 				$content = file_get_contents($this->filePath . "src/pocketmine/resources/pocketmine.yml");
-				if($version->isDev()){
-					$content = str_replace("preferred-channel: stable", "preferred-channel: beta", $content);
-				}
 				@file_put_contents($this->dataPath . "pocketmine.yml", $content);
 			}
 			$this->config = new Config($configPath = $this->dataPath . "pocketmine.yml", Config::YAML, []);
 			$nowLang = $this->getProperty("settings.language", "eng");
+
+			//Crashes unsupported builds without the correct configuration
 			if(strpos(\pocketmine\VERSION, "unsupported") !== false and getenv("GITLAB_CI") === false){
 				if($this->getProperty("settings.enable-testing", false) !== true){
 					throw new ServerException("This build is not intended for production use. You may set 'settings.enable-testing: true' under pocketmine.yml to allow use of non-production builds. Do so at your own risk and ONLY if you know what you are doing.");
@@ -1832,8 +1838,6 @@ class Server{
 				$this->config->reload();
 				unset($this->propertyCache["settings.language"]);
 			}
-
-			$this->logger->info("Loading Apollo.yml...");
 
 			$lang = $this->getProperty("settings.language", BaseLang::FALLBACK_LANGUAGE);
 			if(file_exists($this->filePath . "src/pocketmine/resources/apollo_$lang.yml")){
@@ -1856,7 +1860,6 @@ class Server{
 				$this->generateExpCache($this->expWriteAhead);
 			}
 
-			$this->logger->info("Loading server properties...");
 			$this->properties = new Config($this->dataPath . "server.properties", Config::PROPERTIES, [
 				"motd" => "Minecraft: PE Server",
 				"server-port" => 19132,
@@ -1880,15 +1883,25 @@ class Server{
 				"enable-rcon" => false,
 				"rcon.password" => substr(base64_encode(random_bytes(20)), 3, 10),
 				"auto-save" => true,
+				"online-mode" => false,
 			]);
+
+			$onlineMode = $this->getConfigBoolean("online-mode", false);
+			if(!extension_loaded("openssl")){
+				$this->logger->warning("The OpenSSL extension is not loaded, and this is required for XBOX authentication to work. If you want to use Xbox Live auth, please update your PHP binaries at itxtech.org/download, or recompile PHP with the OpenSSL extension.");
+				$this->setConfigBool("online-mode", false);
+			}elseif(!$onlineMode){
+				$this->logger->warning("SERVER IS RUNNING IN OFFLINE/INSECURE MODE!");
+				$this->logger->warning("The server will make no attempt to authenticate usernames. Beware.");
+				$this->logger->warning("While this makes the game possible to play without internet access, it also opens up the ability for hackers to connect with any username they choose.");
+				$this->logger->warning("To change this, set \"online-mode\" to \"true\" in the server.properties file.");
+			}
 
 			$this->forceLanguage = $this->getProperty("settings.force-language", false);
 			$this->baseLang = new BaseLang($this->getProperty("settings.language", BaseLang::FALLBACK_LANGUAGE));
 			$this->logger->info($this->getLanguage()->translateString("language.selected", [$this->getLanguage()->getName(), $this->getLanguage()->getLang()]));
 
 			$this->memoryManager = new MemoryManager($this);
-
-			$this->logger->info($this->getLanguage()->translateString("pocketmine.server.start", [TextFormat::AQUA . $this->getVersion(). TextFormat::WHITE]));
 
 			if(($poolSize = $this->getProperty("settings.async-workers", "auto")) === "auto"){
 				$poolSize = ServerScheduler::$WORKERS;
@@ -1964,13 +1977,6 @@ class Server{
 			$this->network = new Network($this);
 			$this->network->setName($this->getMotd());
 
-
-			$this->logger->info($this->getLanguage()->translateString("pocketmine.server.info", [
-				$this->getName(),
-				$this->getPocketMineVersion(),
-				$this->getCodename(),
-				$this->getApiVersion()
-			]));
 			$this->logger->info($this->getLanguage()->translateString("pocketmine.server.license", [$this->getName()]));
 
 			Timings::init();
@@ -1981,7 +1987,7 @@ class Server{
 			$this->registerEntities();
 			$this->registerTiles();
 
-			InventoryType::init($this->inventoryNum);
+			InventoryType::init();
 			Block::init();
 			Enchantment::init();
 			Item::init($this->creativeItemsFromJson);
@@ -2013,8 +2019,6 @@ class Server{
 			}
 
 			$this->pluginManager->loadPlugins($this->pluginPath);
-
-			$this->updater = new AutoUpdater($this, $this->getProperty("auto-updater.host", "www.pocketmine.net"));
 
 			$this->enablePlugins(PluginLoadOrder::STARTUP);
 
@@ -2083,6 +2087,7 @@ class Server{
 
 			if($this->netherEnabled){
 				if(!$this->loadLevel($this->netherName)){
+					//$this->logger->info("正在生成地狱 ".$this->netherName);
 					$this->generateLevel($this->netherName, time(), Generator::getGenerator("nether"));
 				}
 				$this->netherLevel = $this->getLevelByName($this->netherName);
@@ -2104,7 +2109,7 @@ class Server{
 				$this->synapse = new Synapse($this, $this->synapseConfig);
 			}
 
-			if($cfgVer != $advVer){
+			if($cfgVer > $advVer){
 				$this->logger->notice("Your genisys.yml needs update");
 				$this->logger->notice("Current Version: $advVer   Latest Version: $cfgVer");
 			}
@@ -2867,8 +2872,7 @@ class Server{
 		$u = Utils::getMemoryUsage(true);
 		$usage = round(($u[0] / 1024) / 1024, 2) . "/" . round(($d[0] / 1024) / 1024, 2) . "/" . round(($u[1] / 1024) / 1024, 2) . "/" . round(($u[2] / 1024) / 1024, 2) . " MB @ " . Utils::getThreadCount() . " threads";
 
-		echo "\x1b]0;" . $this->getName() . " " .
-			$this->getGameVersion() . "-#" . $this->getBuild() .
+		echo "\x1b]0;" . $this->getName() . $this->getFormattedVersion("-") .
 			" | Online " . count($this->players) . "/" . $this->getMaxPlayers() .
 			" | Memory " . $usage .
 			" | U " . round($this->network->getUpload() / 1024, 2) .
@@ -3097,7 +3101,7 @@ class Server{
 		Entity::registerEntity(XPOrb::class);
 		Entity::registerEntity(Zombie::class);
 		Entity::registerEntity(ZombieVillager::class);
-		
+
 		Entity::registerEntity(Human::class, true);
 	}
 
@@ -3113,10 +3117,6 @@ class Server{
 		Tile::registerTile(Furnace::class);
 		Tile::registerTile(Hopper::class);
 		Tile::registerTile(ItemFrame::class);
-		Tile::registerTile(Dispenser::class);
-		Tile::registerTile(Dropper::class);
-		Tile::registerTile(DLDetector::class);
-		Tile::registerTile(Cauldron::class);
 		Tile::registerTile(MobSpawner::class);
 		Tile::registerTile(Sign::class);
 		Tile::registerTile(Skull::class);
