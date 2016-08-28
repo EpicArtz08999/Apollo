@@ -84,7 +84,6 @@ use pocketmine\metadata\BlockMetadataStore;
 use pocketmine\metadata\Metadatable;
 use pocketmine\metadata\MetadataValue;
 use pocketmine\nbt\NBT;
-
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\nbt\tag\DoubleTag;
 use pocketmine\nbt\tag\ListTag;
@@ -104,7 +103,6 @@ use pocketmine\network\protocol\UpdateBlockPacket;
 use pocketmine\network\protocol\AddEntityPacket;
 use pocketmine\Player;
 use pocketmine\plugin\Plugin;
-
 use pocketmine\Server;
 use pocketmine\tile\Chest;
 use pocketmine\tile\Spawnable;
@@ -116,9 +114,7 @@ use pocketmine\utils\ReversePriorityQueue;
 use pocketmine\level\particle\Particle;
 use pocketmine\level\sound\Sound;
 use pocketmine\level\particle\DestroyBlockParticle;
-
 use pocketmine\level\generator\biome\Biome;
-
 use pocketmine\entity\Lightning;
 use pocketmine\entity\XPOrb;
 use pocketmine\level\weather\Weather;
@@ -241,11 +237,6 @@ class Level implements ChunkManager, Metadatable{
 	private $blockStates;
 
 	public $sleepTicks = 0;
-	
-	private $monsterSpawn = -1;
-	private $animalSpawn = -1;
-	private $waterAnimalSpawn = -1;
-	private $ambientSpawn = -1;
 
 	private $chunkTickRadius;
 	private $chunkTickList = [];
@@ -267,9 +258,9 @@ class Level implements ChunkManager, Metadatable{
 		Block::PUMPKIN_STEM => PumpkinStem::class,
 		Block::NETHER_WART_BLOCK => NetherWart::class,
 		Block::MELON_STEM => MelonStem::class,
-		Block::VINE => Vine::class,
+		//Block::VINE => true,
 		Block::MYCELIUM => Mycelium::class,
-		Block::COCOA_BLOCK => CocoaBlock::class,
+		//Block::COCOA_BLOCK => true,
 		Block::CARROT_BLOCK => Carrot::class,
 		Block::POTATO_BLOCK => Potato::class,
 		Block::LEAVES2 => Leaves2::class,
@@ -926,15 +917,18 @@ class Level implements ChunkManager, Metadatable{
 				if($b === null){
 					continue;
 				}
+
 				$pk = new UpdateBlockPacket();
 				$first = false;
 				if(!isset($chunks[$index = Level::chunkHash($b->x >> 4, $b->z >> 4)])){
 					$chunks[$index] = true;
 					$first = true;
 				}
+
 				$pk->x = $b->x;
 				$pk->z = $b->z;
 				$pk->y = $b->y;
+
 				if($b instanceof Block){
 					$pk->blockId = $b->getId();
 					$pk->blockData = $b->getDamage();
@@ -952,9 +946,11 @@ class Level implements ChunkManager, Metadatable{
 					continue;
 				}
 				$pk = new UpdateBlockPacket();
+
 				$pk->x = $b->x;
 				$pk->z = $b->z;
 				$pk->y = $b->y;
+
 				if($b instanceof Block){
 					$pk->blockId = $b->getId();
 					$pk->blockData = $b->getDamage();
@@ -1598,8 +1594,10 @@ class Level implements ChunkManager, Metadatable{
 			]));
 
 			$itemEntity->spawnToAll();
+
 			return $itemEntity;
 		}
+
 		return null;
 	}
 
@@ -1924,6 +1922,8 @@ class Level implements ChunkManager, Metadatable{
 		if($hand->place($item, $block, $target, $face, $fx, $fy, $fz, $player) === false){
 			return false;
 		}
+
+		$this->addSound(new BlockPlaceSound($this->getBlock($block)));
 
 		if($hand->getId() === Item::SIGN_POST or $hand->getId() === Item::WALL_SIGN){
 
