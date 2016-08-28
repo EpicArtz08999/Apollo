@@ -1,21 +1,21 @@
-#Apollo Advanced Configuration File
+#Genisys Advanced Configuration File
 
 #Version of this file
 config:
- version: 18
+ version: 19
 
 level:
- #Set if turn on the weather system. If is turned off,not all biomes is generated
+ #Set if turn on the weather system
  weather: true
  #Weather random duration
  weather-random-duration-min: 6000
  weather-random-duration-max: 12000
  #Random lightning interval，default as 10s, 0 = disable
- lightning-time: 500
+ lightning-time: 200
  #Set if enable lightning with fire
  lightning-fire: false
  #Set if enable fire spread
- fire-spread: true
+ fire-spread: false
  
 player:
  #the switch of hunger system
@@ -28,14 +28,12 @@ player:
  experience: true
  #Choose if keep inventory when a player died
  keep-inventory: false
- #The space of inventory
- inventory-num: 36
  #Clear the inventory automatically when change the gamemode into creative
  auto-clear-inventory : true
  #Choose if keep experience when a player died
  keep-experience: false
  #If players get crash when join, set this below 10. disable=-1
- chunk-radius: 4
+ chunk-radius: -1
 
 nether:
  #Choose if the nether's allowed,the level of nether will generate automatically
@@ -65,13 +63,10 @@ server:
  recipes-from-json: false
  #Choose if read creative item from json
  creative-items-from-json: false
- #Choose if minecart is free moving, follow rails or disable
- #-1=disable, 0=free moving, 1=follow rails
- minecart-moving-type: 1
  #Choose if enable movement check (no more pull back)
  check-movement: true
  #Set if enable limited creative (cannot drop item, cannot interact Chests and so on)
- limited-creative: false
+ limited-creative: true
  #Set if add DestroyBlockParticle
  destroy-block-particle: true
  #Set if enable splash potion
@@ -86,7 +81,7 @@ enchantment:
  enable-enchanting-table: true
  #Choose if to count bookshelves, may cause server lag.
  #If this option is false, server will use a random count (0~15)
- count-bookshelf: true
+ count-bookshelf: false
 
 redstone:
  ##########################################
@@ -94,15 +89,11 @@ redstone:
  ##########################################
  #If not true then the redstone won't work#
  ##########################################
- enable: true
+ enable: false
  #Choose if allow frequancy pulse
- frequency-pulse: true
+ frequency-pulse: false
  #Set the frequency of pulse, Default: 1s
  pulse-frequency: 1
- 
-updater:
- #Branch which will be used by the updater of /updateserver
- branch: "master"
 
 synapse:
  #If you want to use Synapse API or connect to a synapse server, enable this
@@ -170,3 +161,7 @@ ai:
  creeper-explode-destroy-block: false
  #Choose if allow mob auto generate
  mobgenerate: false
+ 
+inventory:
+ #Set this to true if you have problems with anvils. Will process inventory transactions in a vanilla fashion with no anti-cheats or verification.
+ allow-cheats: false
