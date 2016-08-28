@@ -1,6 +1,6 @@
 <?php
 
-/*
+/**
  *
  *  _____   _____   __   _   _   _____  __    __  _____
  * /  ___| | ____| |  \ | | | | /  ___/ \ \  / / /  ___/
@@ -21,17 +21,22 @@
 
 namespace pocketmine\inventory;
 
-use pocketmine\tile\Hopper;
+use pocketmine\Player;
 
-class HopperInventory extends ContainerInventory{
-	public function __construct(Hopper $tile){
-		parent::__construct($tile, InventoryType::get(InventoryType::HOPPER));
-	}
+abstract class TemporaryInventory extends ContainerInventory{
+	//TODO
 
-	/**
-	 * @return Hopper
-	 */
-	public function getHolder(){
-		return $this->holder;
+	abstract public function getResultSlotIndex();
+
+
+	public function onClose(Player $who){
+		foreach($this->getContents() as $slot => $item){
+			if($slot === $this->getResultSlotIndex()){
+				//Do not drop the item in the result slot - it is a virtual item and does not actually exist.
+				continue;
+			}
+			$who->dropItem($item);
+		}
+		$this->clearAll();
 	}
 }

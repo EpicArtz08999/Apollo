@@ -21,17 +21,35 @@
 
 namespace pocketmine\inventory;
 
-use pocketmine\tile\Hopper;
+interface TransactionQueue{
 
-class HopperInventory extends ContainerInventory{
-	public function __construct(Hopper $tile){
-		parent::__construct($tile, InventoryType::get(InventoryType::HOPPER));
-	}
+	const DEFAULT_ALLOWED_RETRIES = 5;
 
 	/**
-	 * @return Hopper
+	 * @return Inventory
 	 */
-	public function getHolder(){
-		return $this->holder;
-	}
+	function getInventories();
+
+	/**
+	 * @return \SplQueue
+	 */
+	function getTransactions();
+
+	/**
+	 * @return int
+	 */
+	function getTransactionCount();
+
+	/**
+	 * @param Transaction $transaction
+	 *
+	 * Adds a transaction to the queue
+	 */
+	function addTransaction(Transaction $transaction);
+
+	/**
+	 * Handles transaction queue execution
+	 */
+	function execute();
+
 }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  *
  *  _____   _____   __   _   _   _____  __    __  _____
@@ -17,21 +18,32 @@
  * @link https://itxtech.org
  *
  */
+
 namespace pocketmine\inventory;
+
 use pocketmine\event\inventory\InventoryTransactionEvent;
 use pocketmine\item\Item;
 use pocketmine\Player;
+
 class SimpleTransactionQueue implements TransactionQueue{
+
 	/** @var Player[] */
 	protected $player = null;
+
 	/** @var \SplQueue */
 	protected $transactionQueue;
 	/** @var \SplQueue */
 	protected $transactionsToRetry;
+	
+	/** @var Inventory[] */
+	protected $inventories;
+
 	/** @var float */
 	protected $lastUpdate = -1;
+
 	/** @var int */
 	protected $transactionCount = 0;
+
 	/**
 	 * @param Player $player
 	 */
@@ -40,50 +52,58 @@ class SimpleTransactionQueue implements TransactionQueue{
 		$this->transactionQueue = new \SplQueue();
 		$this->transactionsToRetry = new \SplQueue();
 	}
+
 	/**
 	 * @return Player
 	 */
 	public function getPlayer(){
 		return $this->player;
 	}
-	public function getTransactionCount(){
-		return $this->transactionCount;
+
+	public function getInventories(){
+		return $this->inventories;
 	}
-	/**
-	 * @return \SplQueue
-	 */
+
 	public function getTransactions(){
 		return $this->transactionQueue;
 	}
-	/**
-	 * @param Transaction $transaction
-	 *
-	 * Adds a transaction to the queue
-	 */
+
+	public function getTransactionCount(){
+		return $this->transactionCount;
+	}
+
 	public function addTransaction(Transaction $transaction){
 		$this->transactionQueue->enqueue($transaction);
+		if($transaction->getInventory() instanceof Inventory){
+			/** For dropping items, the target inventory is open air, a.k.a. null. */
+			$this->inventories[spl_object_hash($transaction)] = $transaction->getInventory();
+		}
 		$this->lastUpdate = microtime(true);
 		$this->transactionCount += 1;
 	}
-	/**
-	 * Handles transaction queue execution
-	 */
+
 	public function execute(){
 		/** @var Transaction[] */
 		$failed = [];
+
 		while(!$this->transactionsToRetry->isEmpty()){
 			//Some failed transactions are waiting from the previous execution to be retried
 			$this->transactionQueue->enqueue($this->transactionsToRetry->dequeue());
 		}
+
 		if(!$this->transactionQueue->isEmpty()){
 			$this->player->getServer()->getPluginManager()->callEvent($ev = new InventoryTransactionEvent($this));
 		}else{
 			return;
 		}
+
 		while(!$this->transactionQueue->isEmpty()){
 			$transaction = $this->transactionQueue->dequeue();
+
 			if($ev->isCancelled()){
+				$this->transactionCount -= 1;
 				$transaction->sendSlotUpdate($this->player); //Send update back to client for cancelled transaction
+				unset($this->inventories[spl_object_hash($transaction)]);
 				continue;
 			}elseif(!$transaction->execute($this->player)){
 				$transaction->addFailure();
@@ -97,12 +117,16 @@ class SimpleTransactionQueue implements TransactionQueue{
 				}
 				continue;
 			}
+
 			$this->transactionCount -= 1;
 			$transaction->setSuccess();
 			$transaction->sendSlotUpdate($this->player);
+			unset($this->inventories[spl_object_hash($transaction)]);
 		}
+
 		foreach($failed as $f){
 			$f->sendSlotUpdate($this->player);
+			unset($this->inventories[spl_object_hash($f)]);
 		}
 	}
 }

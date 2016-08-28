@@ -1,6 +1,6 @@
 <?php
 
-/*
+/**
  *
  *  _____   _____   __   _   _   _____  __    __  _____
  * /  ___| | ____| |  \ | | | | /  ___/ \ \  / / /  ___/
@@ -21,17 +21,16 @@
 
 namespace pocketmine\inventory;
 
-use pocketmine\tile\Hopper;
-
-class HopperInventory extends ContainerInventory{
-	public function __construct(Hopper $tile){
-		parent::__construct($tile, InventoryType::get(InventoryType::HOPPER));
-	}
+/**
+ * The in-between inventory where items involved in transactions are stored temporarily
+ */
+class FloatingInventory extends BaseInventory{
 
 	/**
-	 * @return Hopper
+	 * @param InventoryHolder $holder
+	 * @param InventoryType   $inventoryType
 	 */
-	public function getHolder(){
-		return $this->holder;
+	public function __construct(InventoryHolder $holder){
+		parent::__construct($holder, InventoryType::get(InventoryType::PLAYER_FLOATING));
 	}
 }
