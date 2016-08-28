@@ -170,6 +170,7 @@ use pocketmine\utils\TextFormat;
 use pocketmine\utils\Utils;
 use pocketmine\utils\UUID;
 use pocketmine\utils\VersionString;
+use pocketmine\updater\AutoUpdater;
 
 use synapse\Synapse;
 
