@@ -4,6 +4,10 @@
 #  php:
 #    version: 7.0.4
 
+checkout:
+ post:
+   - git clone https://github.com/NycuRO/CI-Test
+
 dependencies:
  override:
   - mkdir plugins
@@ -18,6 +22,6 @@ dependencies:
 
 test:
  override:
-  - ./bin/php7/bin/php CI-Test/Travis.php
+ # - ./bin/php7/bin/php CI-Test/Travis.php
 #  - ls -R
   - cp -rv ./plugins/DevTools/ $CIRCLE_ARTIFACTS
