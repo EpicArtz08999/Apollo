@@ -15,7 +15,6 @@ and its pickt upp bij caspervanneck
 
 ## Information
 
-- Need to communicate with us? Join our [gitter](https://gitter.mi/apollogitter/lobby) group!
 - We are a edited version of Genisys. We have edited their generators to our version and have improved the performance
 - You can download .phar from Circle CI. Tab to latest build,tap to artifacts selection,tap to DevTools and download Apollo1.0dev.phar
 
