@@ -1628,10 +1628,10 @@ class Server{
 	public function about(){
 		$string = '
 
-	§3Apollo§f is a fork of §bgenisys§f, made by §5icaspervanneck and nycuro§f
-	Version: §6' . $this->getPocketMineVersion() . '§f
-	Target client version: §b' . \pocketmine\MINECRAFT_VERSION . '§f
-	Source code: §dhttps://github.com/apollo-team/Apollo§f
+		   §9Apollo §fis a fork of PocketMine-MP.
+		   §fVersion: §6" . $this->getPocketMineVersion() . "
+		   §fClient Version: §d". \pocketmine\MINECRAFT_VERSION ."
+		   §fYou can get the latest code on https://github.com/apollo-team/Apollo§f
 	';
 	
 		$this->getLogger()->info($string);
@@ -2096,7 +2096,7 @@ class Server{
 			}
 
 			if($cfgVer > $advVer){
-				$this->logger->notice("Your genisys.yml needs update");
+				$this->logger->notice("Your apollo.yml needs update");
 				$this->logger->notice("Current Version: $advVer   Latest Version: $cfgVer");
 			}
 
