@@ -31,7 +31,7 @@ Thanks Genisys , ClearSky and PocketMine and ImagicalMine for code :)
 Apollo is a perfect software for your server with :
 
  - New better and epic world with epic chunks loaded
- - XBOX support ( in testing )
+ - XBOX auth
  - Bugs fixed
  - Hoppers
  - More TNT performance ( support 500 TNT without lag with official configurations : apollo.yml, pocketmine.yml )
@@ -67,16 +67,6 @@ Apollo is a perfect software for your server with :
  - Colorful Sheep
  - Splash Potions 
  - Nether [ more more changes and performance ]
-
-
-## Upcoming Update
-
-1.0dev - Add more biomes is added ( NOT ALL ) -> RELEASED
-
-1.0beta - Finish all biomes is added ( NOT ALL )
-
-1.0 - More performance
- ...
 
 Attention! All version have new biomes added and more changes in biomes and more performances :)
  
