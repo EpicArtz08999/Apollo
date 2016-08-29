@@ -1629,8 +1629,8 @@ class Server{
 		$string = '
 
 		   §9Apollo §fis a fork of PocketMine-MP.
-		   §fVersion: §6" . $this->getPocketMineVersion() . "
-		   §fClient Version: §d". \pocketmine\MINECRAFT_VERSION ."
+		   §fVersion: §6 .$this->getPocketMineVersion().
+		   §fClient Version: §d.\pocketmine\MINECRAFT_VERSION.
 		   §fYou can get the latest code on https://github.com/apollo-team/Apollo§f
 	';
 	
