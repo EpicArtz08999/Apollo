@@ -134,6 +134,8 @@ dserver:
  #the server list，Separate by ';'，e.g. 1.example.com:19132;2.example.com:19133
  server-list: ""
  
+updater: #Branch which will be used by the updater of /updateserver- branch: "master"
+
 ai:
  #AI switch
  enable: false
